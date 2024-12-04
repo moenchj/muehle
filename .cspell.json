@@ -1,0 +1,24 @@
+// cSpell Settings - https://cspell.org/configuration/
+{
+    // version of the settings file - currently always 0.2
+    "version": "0.2",
+    // language - current active spelling language
+    "language": "en",
+    // words - a list of words to be considered correct
+    "words": [
+        "figsize",
+        "fontproperties",
+        "horizontalalignment",
+        "labelsize",
+        "linewidth",
+        "markersize",
+        "matplotlib",
+        "pyplot",
+        "xdata",
+        "ydata"
+    ],
+    // ignoreWords - a list of words to be ignored
+    "ignoreWords": [],
+    // ignorePaths - a list of globs to specify which files are to be ignored
+    "ignorePaths": []
+}
