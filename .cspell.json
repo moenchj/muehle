@@ -14,6 +14,7 @@
         "markersize",
         "matplotlib",
         "pyplot",
+        "Unregisters",
         "xdata",
         "ydata"
     ],
