@@ -4,9 +4,13 @@
         "black"
     ],
     "python.analysis.typeCheckingMode": "strict",
+    "python.terminal.activateEnvironment": true,
     "editor.formatOnSave": true,
     "python.analysis.autoImportCompletions": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportPrivateImportUsage": "none"
+    }
 }

@@ -1,9 +1,11 @@
 import enum
 import math
+from time import sleep
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import matplotlib
 import matplotlib.font_manager as font_manager
+from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseButton
 
@@ -29,7 +31,8 @@ Visualization of a mill game board.
 
 class MillGameBoard:
     _click_handlers: List[Callable[[Optional[int]], None]] = []
-    _event_handlers: List[Callable[[Event, Optional[Dict[str, Any]]], None]] = []
+    _event_handlers: List[Callable[[
+        Event, Optional[Dict[str, Any]]], None]] = []
     _information_text: str = ""
     _max_click_dist: float = 0.18
     _valid_positions: Dict[int, Tuple[int, int]] = {
@@ -61,7 +64,9 @@ class MillGameBoard:
     _valid_positions_reverse: Dict[Tuple[int, int], int] = dict(
         zip(_valid_positions.values(), _valid_positions.keys())
     )
-    _color_config: Dict[Color, str] = {Color.WHITE: "white", Color.BLACK: "black"}
+    _color_config: Dict[Color, str] = {
+        Color.WHITE: "white", Color.BLACK: "black"}
+    _event_queue: List[Tuple[Event, Optional[Dict[str, Any]]]] = []
 
     def __init__(self):
         self._stones: Dict[int, Color] = {}
@@ -78,11 +83,14 @@ class MillGameBoard:
         self._ax.cla()
         self._ax.axis("off")
         # Draw the three rectangles (concentric squares)
-        rect: Patch = plt.Rectangle((0, 0), 6, 6, fill=False, color="black", linewidth=2)  # type: ignore
+        rect: Patch = plt.Rectangle(
+            (0, 0), 6, 6, fill=False, color="black", linewidth=2)  # type: ignore
         self._ax.add_patch(rect)
-        rect = plt.Rectangle((1, 1), 4, 4, fill=False, color="black", linewidth=2)  # type: ignore
+        rect = plt.Rectangle((1, 1), 4, 4, fill=False,
+                             color="black", linewidth=2)  # type: ignore
         self._ax.add_patch(rect)
-        rect = plt.Rectangle((2, 2), 2, 2, fill=False, color="black", linewidth=2)  # type: ignore
+        rect = plt.Rectangle((2, 2), 2, 2, fill=False,
+                             color="black", linewidth=2)  # type: ignore
         self._ax.add_patch(rect)
 
         # Draw the connecting lines between rectangles
@@ -123,7 +131,8 @@ class MillGameBoard:
         if position in self._valid_positions:
             self._stones[position] = color
             self.select_stone(None)
-            self._on_event(Event.STONE_SET, {"color": color, "position": position})
+            self._on_event(Event.STONE_SET, {
+                           "color": color, "position": position})
         else:
             raise ValueError(
                 "Invalid position. Stones can only be placed on crossings."
@@ -140,26 +149,28 @@ class MillGameBoard:
             if color != None:
                 self.select_stone(None)
                 del self._stones[position]
-                self._on_event(Event.STONE_REMOVED, {"color": color, "position": position})
+                self._on_event(Event.STONE_REMOVED, {
+                               "color": color, "position": position})
         else:
             raise ValueError(
                 "Invalid position. Stones can only be placed on crossings."
             )
 
-    def move_stone(self, fromPos: int, toPos: int):
+    def move_stone(self, from_pos: int, to_pos: int):
         """
         Moves a stone on the board.
-        :param fromPos: position of the stone to move.
-        :param toPos: position to move the stone to.
+        :param from_pos: position of the stone to move.
+        :param to_pos: position to move the stone to.
         """
         # Check if the position is a valid crossing
-        if fromPos in self._valid_positions and toPos in self._valid_positions:
-            stoneCol = self._stones.get(fromPos)
-            if stoneCol != None:
-                del self._stones[fromPos]
-                self._stones[toPos] = stoneCol
+        if from_pos in self._valid_positions and to_pos in self._valid_positions:
+            stone_col = self._stones.get(from_pos)
+            if stone_col != None:
+                del self._stones[from_pos]
+                self._stones[to_pos] = stone_col
                 self.select_stone(None)
-                self._on_event(Event.STONE_MOVED, {"color": stoneCol, "from": fromPos, "to": toPos})
+                self._on_event(Event.STONE_MOVED, {
+                               "color": stone_col, "from": from_pos, "to": to_pos})
 
         else:
             raise ValueError(
@@ -278,6 +289,7 @@ class MillGameBoard:
         Is called on every click and distributed the click event to the registered handlers if it was near a stone.
         :param event: Matplotlib click event.
         """
+        print("Click: ", event)
         position = None
         if (
             event.button is MouseButton.LEFT
@@ -291,14 +303,21 @@ class MillGameBoard:
             position = self._valid_positions_reverse.get((x, y))
         for handler in self._click_handlers:
             handler(position)
-    
-    def _on_event(self, event: Event, eventData: Optional[Dict[str, Any]]) -> None:
+        self._deliver_events()
+
+    def _on_event(self, event: Event, event_data: Optional[Dict[str, Any]]) -> None:
         """
         Is called on every event that happens on the board and calls all registered event handlers.
         :param event: Mill board event.
         """
-        for handler in self._event_handlers:
-            handler(event, eventData)
+        self._event_queue.append((event, event_data))
+
+    def _deliver_events(self):
+        for event in self._event_queue:
+            print("Event: ", event)
+            for handler in self._event_handlers:
+                handler(event[0], event[1])
+        self._event_queue.clear()
 
 
 def click_handler(position: Optional[int]) -> None:
